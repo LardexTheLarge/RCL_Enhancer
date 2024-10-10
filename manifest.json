@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "RCL Enhancer",
+  "version": "1.0",
+  "description": "A simple Chrome extension to run AI that will help you enhance your resume and .",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "permissions": ["activeTab", "scripting"]
+}
