@@ -1,21 +1,29 @@
 document.getElementById("runAIButton").addEventListener("click", runAI);
 
 async function runAI() {
-  // Start by checking if it's possible to create a session based on the availability of the model, and the characteristics of the device.
-  const { available, defaultTemperature, defaultTopK, maxTopK } =
-    await window.ai.assistant.capabilities();
+  // Start by checking if it's possible to create a session based on the availability of the model
+  const { available } = await window.ai.assistant.capabilities();
 
   if (available !== "no") {
-    const session = await window.ai.assistant.create();
+    const session = await ai.assistant.create({
+      systemPrompt:
+        "You are a friendly, helpful assistant specialized in Everything Godzilla.",
+    });
 
-    // // Prompt the model and wait for the whole result to come back.
-    // const result = await session.prompt("Write me a poem");
-    // document.getElementById("result").textContent = result;
+    // Stream the AI response and display it
+    const stream = session.promptStreaming(
+      "Summarize Godzilla vs MechaGodzilla 2"
+    );
 
-    // Prompt the model and stream the result:
-    const stream = session.promptStreaming("Describe Godzilla in 2 sentences");
+    // Clear the result area before showing new content
+    document.getElementById("result").textContent = "streaming...";
+
     for await (const chunk of stream) {
+      // Append each chunk of the streamed result
       document.getElementById("result").textContent = chunk;
     }
+  } else {
+    document.getElementById("result").textContent =
+      "AI assistant is not available.";
   }
 }
