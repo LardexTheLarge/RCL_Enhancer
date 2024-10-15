@@ -3,25 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Resume Enhancer</title>
+    <title>RCL Enhancer</title>
     <!-- Include Bootstrap CSS -->
     <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
     <style>
       body {
-        width: 500px; /* Set the width to make the popup wider */
-        height: 600px; /* Set the height to make the popup taller */
+        width: 600px;
+        height: 700px;
         padding: 20px;
         font-family: Arial, sans-serif;
+        transition: background-color 0.3s, color 0.3s;
       }
 
-      .container {
-        max-width: 100%;
-        height: 100%;
-      }
-
-      #resumeInput {
+      #resumeInput,
+      #coverLetterInput,
+      #resultResume,
+      #resultCoverLetter {
         width: 100%;
-        height: 200px; /* Set height for the resume textarea */
+        height: 200px;
         padding: 10px;
         border: 1px solid #ccc;
         border-radius: 4px;
@@ -31,41 +30,154 @@
         box-sizing: border-box;
         resize: vertical;
         background-color: #f9f9f9;
+        transition: background-color 0.3s, color 0.3s;
       }
 
-      #result {
-        width: 100%;
-        height: 200px; /* Same height as the resumeInput */
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        line-height: 1.5;
-        box-sizing: border-box;
-        background-color: #f9f9f9;
-        overflow-y: auto; /* Ensure overflow content is scrollable */
-        white-space: pre-wrap; /* Preserve spaces and line breaks */
+      #resultResume,
+      #resultCoverLetter {
+        overflow-y: auto;
+        white-space: pre-wrap;
+      }
+
+      /* Placeholder styling for light mode */
+      #resumeInput::placeholder,
+      #coverLetterInput::placeholder {
+        color: #888;
+      }
+
+      /* Dark mode styles using the prefers-color-scheme media query */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #121212;
+          color: #e0e0e0;
+        }
+
+        #resumeInput,
+        #coverLetterInput,
+        #resultResume,
+        #resultCoverLetter {
+          background-color: #1e1e1e;
+          color: #e0e0e0;
+          border: 1px solid #555;
+        }
+
+        /* Placeholder styling for dark mode */
+        #resumeInput::placeholder,
+        #coverLetterInput::placeholder {
+          color: #bbb; /* Lighter color for dark mode */
+        }
+
+        .nav-tabs .nav-link {
+          background-color: #333;
+          border-color: #555;
+          color: #e0e0e0;
+        }
+
+        .nav-tabs .nav-link.active {
+          background-color: #1e1e1e;
+          border-color: #555;
+          color: #fff;
+        }
+
+        button.btn-primary {
+          background-color: #1a73e8;
+          border-color: #1a73e8;
+          color: white;
+          transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        button.btn-primary:hover {
+          background-color: #1669c1;
+          border-color: #1669c1;
+        }
+
+        button.btn-primary:active {
+          background-color: #135ba0;
+          border-color: #135ba0;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1 class="text-center">Resume Enhancer</h1>
+      <h1 class="text-center">RCL Enhancer</h1>
 
-      <div class="mb-3">
-        <label for="resumeInput" class="form-label">Enter your resume:</label>
-        <textarea
-          class="form-control"
-          id="resumeInput"
-          rows="5"
-          placeholder="Paste your resume here..."
-        ></textarea>
+      <!-- Nav Tabs -->
+      <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link active"
+            id="resume-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#resume"
+            type="button"
+            role="tab"
+            aria-controls="resume"
+            aria-selected="true"
+          >
+            Resume
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="cover-letter-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#cover-letter"
+            type="button"
+            role="tab"
+            aria-controls="cover-letter"
+            aria-selected="false"
+          >
+            Cover Letter
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content" id="myTabContent">
+        <!-- Resume Tab -->
+        <div
+          class="tab-pane fade show active"
+          id="resume"
+          role="tabpanel"
+          aria-labelledby="resume-tab"
+        >
+          <div class="mb-3">
+            <label for="resumeInput" class="form-label"></label>
+            <textarea
+              class="form-control"
+              id="resumeInput"
+              placeholder="Paste your resume here..."
+            ></textarea>
+          </div>
+          <button id="runAIResumeButton" class="btn btn-primary">
+            Enhance Resume
+          </button>
+          <div id="resultResume" class="mt-4"></div>
+        </div>
+
+        <!-- Cover Letter Tab -->
+        <div
+          class="tab-pane fade"
+          id="cover-letter"
+          role="tabpanel"
+          aria-labelledby="cover-letter-tab"
+        >
+          <div class="mb-3">
+            <label for="coverLetterInput" class="form-label"></label>
+            <textarea
+              class="form-control"
+              id="coverLetterInput"
+              placeholder="Paste your cover letter here..."
+            ></textarea>
+          </div>
+          <button id="runAICoverLetterButton" class="btn btn-primary">
+            Enhance Cover Letter
+          </button>
+          <div id="resultCoverLetter" class="mt-4"></div>
+        </div>
       </div>
-
-      <button id="runAIButton" class="btn btn-primary">Enhance</button>
-
-      <div id="result" class="mt-4 p-2 bg-light border"></div>
     </div>
 
     <!-- Include Bootstrap JS -->
