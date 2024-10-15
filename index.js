@@ -14,7 +14,7 @@ async function runAI() {
     });
 
     // Construct the prompt dynamically using the user's input
-    const promptText = `Enhance the following resume and cover letter: \n\nResume:\n${resumeInput}`;
+    const promptText = `Enhance the following resume: \n\nResume:\n${resumeInput}`;
 
     // Stream the AI response and display it
     const stream = session.promptStreaming(promptText);

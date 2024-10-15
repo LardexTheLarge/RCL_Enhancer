@@ -4,68 +4,72 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Resume Enhancer</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
     <style>
       body {
+        width: 500px; /* Set the width to make the popup wider */
+        height: 600px; /* Set the height to make the popup taller */
+        padding: 20px;
         font-family: Arial, sans-serif;
-        width: 500px;
-        height: 300px;
-        padding: 10px;
-        background-color: #4d4d4d;
-      }
-      #result {
-        width: 100%;
-        height: 200px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        line-height: 1.5;
-        box-sizing: border-box;
-        resize: vertical;
-        background-color: #f9f9f9;
-        transition: border-color 0.3s ease-in-out;
-      }
-      #result:focus {
-        outline: none;
-        border-color: #4caf50;
-        background-color: #fff;
-      }
-      #resumeInput {
-        width: 100%;
-        height: 200px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        line-height: 1.5;
-        box-sizing: border-box;
-        resize: vertical;
-        background-color: #f9f9f9;
-        transition: border-color 0.3s ease-in-out;
       }
 
-      #resumeInput:focus {
-        outline: none;
-        border-color: #4caf50;
-        background-color: #fff;
+      .container {
+        max-width: 100%;
+        height: 100%;
+      }
+
+      #resumeInput {
+        width: 100%;
+        height: 200px; /* Set height for the resume textarea */
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        box-sizing: border-box;
+        resize: vertical;
+        background-color: #f9f9f9;
+      }
+
+      #result {
+        width: 100%;
+        height: 200px; /* Same height as the resumeInput */
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        box-sizing: border-box;
+        background-color: #f9f9f9;
+        overflow-y: auto; /* Ensure overflow content is scrollable */
+        white-space: pre-wrap; /* Preserve spaces and line breaks */
       }
     </style>
   </head>
   <body>
-    <h2>Resume Enhancer</h2>
-    <textarea
-      id="resumeInput"
-      placeholder="Paste your resume here..."
-    ></textarea
-    ><br /><br />
+    <div class="container">
+      <h1 class="text-center">Resume Enhancer</h1>
 
-    <button id="runAIButton">Run Enhancer</button>
+      <div class="mb-3">
+        <label for="resumeInput" class="form-label">Enter your resume:</label>
+        <textarea
+          class="form-control"
+          id="resumeInput"
+          rows="5"
+          placeholder="Paste your resume here..."
+        ></textarea>
+      </div>
 
-    <div id="result">AI output will appear here...</div>
+      <button id="runAIButton" class="btn btn-primary">Enhance</button>
 
-    <!-- Link to the external JS file -->
+      <div id="result" class="mt-4 p-2 bg-light border"></div>
+    </div>
+
+    <!-- Include Bootstrap JS -->
+    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="index.js"></script>
   </body>
 </html>
