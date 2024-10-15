@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RCL Enhancer</title>
+    <title>Resume Enhancer</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -12,21 +12,55 @@
         padding: 10px;
         background-color: #4d4d4d;
       }
-      #progressContainer {
-        display: none;
-        margin-top: 20px;
-      }
       #result {
-        margin-top: 20px;
+        width: 100%;
+        height: 200px;
         padding: 10px;
         border: 1px solid #ccc;
-        min-height: 100px;
-        background-color: #f1f1f1;
+        border-radius: 4px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        box-sizing: border-box;
+        resize: vertical;
+        background-color: #f9f9f9;
+        transition: border-color 0.3s ease-in-out;
+      }
+      #result:focus {
+        outline: none;
+        border-color: #4caf50;
+        background-color: #fff;
+      }
+      #resumeInput {
+        width: 100%;
+        height: 200px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        box-sizing: border-box;
+        resize: vertical;
+        background-color: #f9f9f9;
+        transition: border-color 0.3s ease-in-out;
+      }
+
+      #resumeInput:focus {
+        outline: none;
+        border-color: #4caf50;
+        background-color: #fff;
       }
     </style>
   </head>
   <body>
-    <h2>RCL Enhancer</h2>
+    <h2>Resume Enhancer</h2>
+    <textarea
+      id="resumeInput"
+      placeholder="Paste your resume here..."
+    ></textarea
+    ><br /><br />
+
     <button id="runAIButton">Run Enhancer</button>
 
     <div id="result">AI output will appear here...</div>
