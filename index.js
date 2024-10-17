@@ -1,11 +1,9 @@
 let resumeSession = null; // To keep track of the session
+let coverLetterSession = null; // Keep track of the AI session for cover letters
 
 document
   .getElementById("runAIResumeButton")
   .addEventListener("click", runAIResume);
-document
-  .getElementById("loadLastResponseButton")
-  .addEventListener("click", loadLastResponse); // Add event listener for loading last response
 
 document
   .getElementById("runAICoverLetterButton")
@@ -150,21 +148,52 @@ function getStoredResume() {
 
 async function runAICoverLetter() {
   const coverLetterInput = document.getElementById("coverLetterInput").value;
+
+  // Check if the cover letter input is empty
+  if (!coverLetterInput) {
+    document.getElementById("resultCoverLetter").textContent =
+      "Please enter a cover letter to enhance.";
+    return;
+  }
+
   const { available } = await window.ai.assistant.capabilities();
 
   if (available !== "no") {
-    const session = await ai.assistant.create({
+    // Destroy the previous session if it exists
+    if (coverLetterSession) {
+      coverLetterSession.destroy(); // Free resources of the old session
+      console.log("Previous cover letter session destroyed");
+    }
+
+    // Create a new session for cover letter enhancement
+    coverLetterSession = await ai.assistant.create({
       systemPrompt:
-        "You are a professional assistant specializing in enhancing cover letters. You provide clear, concise, and impactful suggestions to improve job applications.",
+        "Review the attached cover letter and rewrite it to sound more professional while maintaining the original keywords. Focus on the following aspects:\n Tone and Language: Ensure the language is formal and professional. Avoid casual phrases and improve the overall tone.\n Clarity and Conciseness: Make the cover letter clear and concise. Remove any redundant or unnecessary information.\n Structure and Flow: Improve the structure and flow of the cover letter. Ensure each paragraph transitions smoothly to the next.\n Keywords: Retain the original keywords used in the cover letter to ensure it aligns with the job description.\n Personalization: Ensure the cover letter still reflects the candidate’s unique qualifications and enthusiasm for the role.",
     });
 
-    const promptText = `Enhance the following cover letter:\n${coverLetterInput}`;
-    const stream = session.promptStreaming(promptText);
+    const promptText = `Review and enhance the following cover letter:\n${coverLetterInput}`;
+    const stream = coverLetterSession.promptStreaming(promptText);
 
+    // Clear the previous result and show loading state
     document.getElementById("resultCoverLetter").textContent = "Enhancing...";
 
-    for await (const chunk of stream) {
-      document.getElementById("resultCoverLetter").textContent = chunk;
+    try {
+      let finalResult = ""; // Accumulate the result in a variable
+
+      // Stream and display the AI's response
+      for await (const chunk of stream) {
+        finalResult = chunk; // Append each chunk to the result
+        document.getElementById("resultCoverLetter").textContent = finalResult;
+      }
+
+      // Destroy the session after use to free up resources
+      coverLetterSession.destroy();
+      console.log("Cover letter session destroyed after completion");
+      coverLetterSession = null; // Reset session reference
+    } catch (error) {
+      document.getElementById(
+        "resultCoverLetter"
+      ).textContent = `Error: ${error.message}`;
     }
   } else {
     document.getElementById("resultCoverLetter").textContent =
