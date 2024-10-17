@@ -4,14 +4,22 @@ document
   .getElementById("runAIResumeButton")
   .addEventListener("click", runAIResume);
 document
+  .getElementById("loadLastResponseButton")
+  .addEventListener("click", loadLastResponse); // Add event listener for loading last response
+
+document
   .getElementById("runAICoverLetterButton")
   .addEventListener("click", runAICoverLetter);
 
 // Load saved resume input when the popup is opened
 document.addEventListener("DOMContentLoaded", async () => {
   const savedResume = await getStoredResume();
+  const savedResponse = await getStoredResponse(); // Get last saved response
   if (savedResume) {
     document.getElementById("resumeInput").value = savedResume;
+  }
+  if (savedResponse) {
+    document.getElementById("resultResume").textContent = savedResponse; // Show saved response
   }
 });
 
@@ -55,9 +63,15 @@ async function runAIResume() {
     const promptText = `The resume to be reviewed:\n${resumeInput}`;
     const stream = resumeSession.promptStreaming(promptText);
 
+    let finalResult = ""; // Accumulate the result in a variable
+
     for await (const chunk of stream) {
-      document.getElementById("resultResume").textContent = chunk;
+      finalResult = chunk; // Append each chunk to the result
+      document.getElementById("resultResume").textContent = finalResult;
     }
+
+    // Save the final result to local storage
+    saveResponse(finalResult);
 
     // Destroy the session after use to free up resources
     resumeSession.destroy();
@@ -68,6 +82,43 @@ async function runAIResume() {
       "resultResume"
     ).textContent = `Error: ${error.message}`;
   }
+}
+
+// Function to load the last AI response from local storage
+function loadLastResponse() {
+  getStoredResponse().then((response) => {
+    if (response) {
+      document.getElementById("resultResume").textContent = response;
+    } else {
+      document.getElementById("resultResume").textContent =
+        "No previous response found.";
+    }
+  });
+}
+
+// Save the AI response to Chrome's local storage
+function saveResponse(responseText) {
+  chrome.storage.local.set({ savedResponse: responseText }, () => {
+    if (chrome.runtime.lastError) {
+      console.error("Error saving response:", chrome.runtime.lastError);
+    } else {
+      console.log("Response saved successfully");
+    }
+  });
+}
+
+// Retrieve the saved AI response from local storage
+function getStoredResponse() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get("savedResponse", (result) => {
+      if (chrome.runtime.lastError) {
+        console.error("Error retrieving response:", chrome.runtime.lastError);
+        resolve(null);
+      } else {
+        resolve(result.savedResponse || "");
+      }
+    });
+  });
 }
 
 // Save the resume to Chrome's local storage
