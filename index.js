@@ -1,5 +1,4 @@
 let resumeSession = null; // To keep track of the session
-let abortController = null; // To handle cancellation of streaming
 
 document
   .getElementById("runAIResumeButton")
@@ -32,12 +31,6 @@ async function runAIResume() {
   // Clear the previous result
   document.getElementById("resultResume").textContent = "Enhancing...";
 
-  // Abort the previous stream if it exists
-  if (abortController) {
-    abortController.abort(); // Cancel any ongoing streaming
-    console.log("Previous stream aborted");
-  }
-
   // Destroy the previous session if it exists
   if (resumeSession) {
     resumeSession.destroy(); // Free resources of the old session
@@ -49,7 +42,7 @@ async function runAIResume() {
   if (available !== "no") {
     resumeSession = await ai.assistant.create({
       systemPrompt:
-        "You are a professional assistant specializing in enhancing resumes.",
+        "Please review the attached resume and provide detailed feedback on how it can be improved. Focus on the following aspects:\n Content and Clarity: Are the job descriptions clear and concise? Is there any unnecessary jargon or information that can be removed?\n Relevance and Keywords: Does the resume include relevant keywords that align with the job description? Are there any important skills or experiences missing?\n Achievements and Impact: Are the achievements and contributions clearly highlighted? Are there any quantifiable results or metrics that can be added to demonstrate impact?\n Overall Impression: Does the resume effectively showcase the candidate’s qualifications and make a strong impression on potential employers?",
     });
   } else {
     document.getElementById("resultResume").textContent =
@@ -57,47 +50,24 @@ async function runAIResume() {
     return;
   }
 
-  // Create a new AbortController to manage the current streaming
-  abortController = new AbortController();
-  const signal = abortController.signal;
-
   try {
     // Send the resume to the AI and stream the response
-    const promptText = `Enhance the following resume:\n${resumeInput}`;
-    const stream = resumeSession.promptStreaming(promptText, { signal });
+    const promptText = `The resume to be reviewed:\n${resumeInput}`;
+    const stream = resumeSession.promptStreaming(promptText);
 
-    let finalResult = ""; // Accumulate the result in a variable
     for await (const chunk of stream) {
-      if (signal.aborted) {
-        console.log("Stream aborted before completion");
-        break;
-      }
-      finalResult = chunk; // Accumulate the result in a local variable
-      updateResultDisplay(finalResult); // Efficiently update the DOM
+      document.getElementById("resultResume").textContent = chunk;
     }
-
-    document.getElementById("resultResume").textContent +=
-      "\nEnhancement complete.";
 
     // Destroy the session after use to free up resources
     resumeSession.destroy();
     console.log("Session destroyed after completion");
     resumeSession = null; // Reset session reference
   } catch (error) {
-    if (signal.aborted) {
-      document.getElementById("resultResume").textContent =
-        "Streaming was canceled.";
-    } else {
-      document.getElementById(
-        "resultResume"
-      ).textContent = `Error: ${error.message}`;
-    }
+    document.getElementById(
+      "resultResume"
+    ).textContent = `Error: ${error.message}`;
   }
-}
-
-// Function to update the result display more efficiently
-function updateResultDisplay(result) {
-  document.getElementById("resultResume").textContent = result; // Update the text content with the accumulated result
 }
 
 // Save the resume to Chrome's local storage
@@ -107,7 +77,7 @@ function saveResume(resumeText) {
     if (chrome.runtime.lastError) {
       console.error("Error saving resume:", chrome.runtime.lastError);
     } else {
-      console.log("Resume saved successfully:");
+      console.log("Resume saved successfully");
     }
   });
 }
