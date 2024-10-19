@@ -73,7 +73,8 @@ async function runAIResume() {
 
     for await (const chunk of stream) {
       finalResult = chunk; // Append each chunk to the result
-      document.getElementById("resultResume").textContent = finalResult;
+      // Call this function where you handle the streaming of the resume text
+      updateResultDisplayWithScroll(finalResult, "resultResume");
     }
 
     // Save the final result (resume) to local storage
@@ -88,6 +89,13 @@ async function runAIResume() {
       "resultResume"
     ).textContent = `Error: ${error.message}`;
   }
+}
+
+// Function to update the result display with auto-scroll to the bottom
+function updateResultDisplayWithScroll(result, elementId) {
+  const resultDiv = document.getElementById(elementId);
+  resultDiv.textContent = result; // Update the content with the result
+  resultDiv.scrollTop = resultDiv.scrollHeight; // Scroll to the bottom
 }
 
 // Save the AI response to Chrome's local storage
@@ -179,7 +187,9 @@ async function runAICoverLetter() {
       // Stream and display the AI's response
       for await (const chunk of stream) {
         finalResult = chunk; // Append each chunk to the result
-        document.getElementById("resultCoverLetter").textContent = finalResult;
+
+        // Update the result and auto-scroll to the bottom
+        updateResultDisplayWithScroll(finalResult, "resultCoverLetter");
       }
 
       // Save the final result (cover letter) to local storage
