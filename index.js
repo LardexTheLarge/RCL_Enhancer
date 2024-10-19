@@ -9,15 +9,23 @@ document
   .getElementById("runAICoverLetterButton")
   .addEventListener("click", runAICoverLetter);
 
-// Load saved resume input when the popup is opened
+// Load saved resume and cover letter inputs when the popup is opened
 document.addEventListener("DOMContentLoaded", async () => {
   const savedResume = await getStoredResume();
-  const savedResponse = await getStoredResponse(); // Get last saved response
+  const savedResumeResponse = await getStoredResponse("savedResumeResponse"); // Get last saved resume response
+  const savedCoverLetterResponse = await getStoredResponse(
+    "savedCoverLetterResponse"
+  ); // Get last saved cover letter response
+
   if (savedResume) {
     document.getElementById("resumeInput").value = savedResume;
   }
-  if (savedResponse) {
-    document.getElementById("resultResume").textContent = savedResponse; // Show saved response
+  if (savedResumeResponse) {
+    document.getElementById("resultResume").textContent = savedResumeResponse; // Show saved resume response
+  }
+  if (savedCoverLetterResponse) {
+    document.getElementById("resultCoverLetter").textContent =
+      savedCoverLetterResponse; // Show saved cover letter response
   }
 });
 
@@ -68,8 +76,8 @@ async function runAIResume() {
       document.getElementById("resultResume").textContent = finalResult;
     }
 
-    // Save the final result to local storage
-    saveResponse(finalResult);
+    // Save the final result (resume) to local storage
+    saveResponse(finalResult, "savedResumeResponse");
 
     // Destroy the session after use to free up resources
     resumeSession.destroy();
@@ -82,38 +90,26 @@ async function runAIResume() {
   }
 }
 
-// Function to load the last AI response from local storage
-function loadLastResponse() {
-  getStoredResponse().then((response) => {
-    if (response) {
-      document.getElementById("resultResume").textContent = response;
-    } else {
-      document.getElementById("resultResume").textContent =
-        "No previous response found.";
-    }
-  });
-}
-
 // Save the AI response to Chrome's local storage
-function saveResponse(responseText) {
-  chrome.storage.local.set({ savedResponse: responseText }, () => {
+function saveResponse(responseText, storageKey = "savedResponse") {
+  chrome.storage.local.set({ [storageKey]: responseText }, () => {
     if (chrome.runtime.lastError) {
       console.error("Error saving response:", chrome.runtime.lastError);
     } else {
-      console.log("Response saved successfully");
+      console.log(`Response saved successfully under key: ${storageKey}`);
     }
   });
 }
 
 // Retrieve the saved AI response from local storage
-function getStoredResponse() {
+function getStoredResponse(storageKey = "savedResponse") {
   return new Promise((resolve) => {
-    chrome.storage.local.get("savedResponse", (result) => {
+    chrome.storage.local.get([storageKey], (result) => {
       if (chrome.runtime.lastError) {
         console.error("Error retrieving response:", chrome.runtime.lastError);
         resolve(null);
       } else {
-        resolve(result.savedResponse || "");
+        resolve(result[storageKey] || "");
       }
     });
   });
@@ -185,6 +181,9 @@ async function runAICoverLetter() {
         finalResult = chunk; // Append each chunk to the result
         document.getElementById("resultCoverLetter").textContent = finalResult;
       }
+
+      // Save the final result (cover letter) to local storage
+      saveResponse(finalResult, "savedCoverLetterResponse"); // Save with a specific key
 
       // Destroy the session after use to free up resources
       coverLetterSession.destroy();
