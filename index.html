@@ -18,7 +18,9 @@
       #resumeInput,
       #coverLetterInput,
       #resultResume,
-      #resultCoverLetter {
+      #resultCoverLetter,
+      #resultJobPost,
+      #jobPostInput {
         width: 100%;
         height: 200px;
         padding: 10px;
@@ -34,14 +36,16 @@
       }
 
       #resultResume,
-      #resultCoverLetter {
+      #resultCoverLetter,
+      #resultJobPost {
         overflow-y: auto;
         white-space: pre-wrap;
       }
 
       /* Placeholder styling for light mode */
       #resumeInput::placeholder,
-      #coverLetterInput::placeholder {
+      #coverLetterInput::placeholder,
+      #jobPostInput::placeholder {
         color: #888;
       }
 
@@ -55,7 +59,9 @@
         #resumeInput,
         #coverLetterInput,
         #resultResume,
-        #resultCoverLetter {
+        #resultCoverLetter,
+        #resultJobPost,
+        #jobPostInput {
           background-color: #1e1e1e;
           color: #e0e0e0;
           border: 1px solid #555;
@@ -63,7 +69,8 @@
 
         /* Placeholder styling for dark mode */
         #resumeInput::placeholder,
-        #coverLetterInput::placeholder {
+        #coverLetterInput::placeholder,
+        #jobPostInput::placeholder {
           color: #bbb; /* Lighter color for dark mode */
         }
 
@@ -132,6 +139,20 @@
             Cover Letter
           </button>
         </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="job-post-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#job-post"
+            type="button"
+            role="tab"
+            aria-controls="job-post"
+            aria-selected="false"
+          >
+            Job Post
+          </button>
+        </li>
       </ul>
 
       <!-- Tab Content -->
@@ -151,7 +172,7 @@
               placeholder="Paste your resume here..."
             ></textarea>
           </div>
-          <button id="runAIResumeButton" class="btn btn-primary">
+          <button id="runAIResumeButton" class="btn col-12 btn-primary">
             Enhance Resume
           </button>
           <div id="resultResume" class="mt-4"></div>
@@ -172,10 +193,30 @@
               placeholder="Paste your cover letter here..."
             ></textarea>
           </div>
-          <button id="runAICoverLetterButton" class="btn btn-primary">
+          <button id="runAICoverLetterButton" class="btn col-12 btn-primary">
             Enhance Cover Letter
           </button>
           <div id="resultCoverLetter" class="mt-4"></div>
+        </div>
+        <!-- Job Post Tab -->
+        <div
+          class="tab-pane fade"
+          id="job-post"
+          role="tabpanel"
+          aria-labelledby="job-post-tab"
+        >
+          <div class="mb-3">
+            <label for="jobPostInput" class="form-label"></label>
+            <textarea
+              class="form-control"
+              id="jobPostInput"
+              placeholder="Paste your Job Post here..."
+            ></textarea>
+          </div>
+          <button id="runAIJobPostButton" class="btn col-12 btn-primary">
+            Create Cover Letter for Job Post
+          </button>
+          <div id="resultJobPost" class="mt-4"></div>
         </div>
       </div>
     </div>

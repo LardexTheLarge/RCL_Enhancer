@@ -1,5 +1,6 @@
 let resumeSession = null; // To keep track of the session
 let coverLetterSession = null; // Keep track of the AI session for cover letters
+let jobPostSession = null; // Keep track of the AI session for Job Posts
 
 document
   .getElementById("runAIResumeButton")
@@ -9,23 +10,44 @@ document
   .getElementById("runAICoverLetterButton")
   .addEventListener("click", runAICoverLetter);
 
+document
+  .getElementById("runAIJobPostButton")
+  .addEventListener("click", runAIJobPost);
+
 // Load saved resume and cover letter inputs when the popup is opened
 document.addEventListener("DOMContentLoaded", async () => {
-  const savedResume = await getStoredResume();
-  const savedResumeResponse = await getStoredResponse("savedResumeResponse"); // Get last saved resume response
+  // Get last stored resume
+  const savedResume = await getStoredInput("savedResumeInput");
+  // Get last saved resume response
+  const savedResumeResponse = await getStoredResponse("savedResumeResponse");
+  // Get last saved cover letter response
   const savedCoverLetterResponse = await getStoredResponse(
     "savedCoverLetterResponse"
-  ); // Get last saved cover letter response
+  );
+  // Get last saved job post
+  const savedJobPost = await getStoredInput("savedJobPostInput");
+  // Get last saved job post response
+  const savedJobPostResponse = await getStoredResponse("savedJobPostResponse");
 
   if (savedResume) {
     document.getElementById("resumeInput").value = savedResume;
   }
+  // Show saved resume response
   if (savedResumeResponse) {
-    document.getElementById("resultResume").textContent = savedResumeResponse; // Show saved resume response
+    document.getElementById("resultResume").textContent = savedResumeResponse;
   }
+  // Show saved cover letter response
   if (savedCoverLetterResponse) {
     document.getElementById("resultCoverLetter").textContent =
-      savedCoverLetterResponse; // Show saved cover letter response
+      savedCoverLetterResponse;
+  }
+  // Show saved job post response
+  if (savedJobPostResponse) {
+    document.getElementById("resultJobPost").textContent = savedJobPostResponse;
+  }
+  // Show saved job post Input
+  if (savedJobPost) {
+    document.getElementById("jobPostInput").textContent = savedJobPost;
   }
 });
 
@@ -103,7 +125,6 @@ async function runAICoverLetter() {
   }
 
   const { available } = await window.ai.assistant.capabilities();
-
   if (available !== "no") {
     // Destroy the previous session if it exists
     if (coverLetterSession) {
@@ -149,5 +170,67 @@ async function runAICoverLetter() {
   } else {
     document.getElementById("resultCoverLetter").textContent =
       "AI assistant is not available.";
+  }
+}
+
+// Function to run an AI to create a cover letter from a job post
+async function runAIJobPost() {
+  const jobPostInput = document.getElementById("jobPostInput").value;
+
+  if (!jobPostInput) {
+    document.getElementById("resultJobPost").textContent =
+      "Please enter a job post to create a cover letter.";
+    return;
+  }
+
+  // Save the job post input to local storage
+  saveJobPost(jobPostInput);
+
+  // Clear the previous result
+  document.getElementById("resultJobPost").textContent = "Creating...";
+
+  // Destroy the previous session if it exists
+  if (jobPostSession) {
+    jobPostSession.destroy(); // Free resources of the old session
+    console.log("Previous session destroyed");
+  }
+
+  // Create a new session
+  const { available } = await window.ai.assistant.capabilities();
+  if (available !== "no") {
+    jobPostSession = await ai.assistant.create({
+      systemPrompt:
+        "Please review the provided job post and create a tailored cover letter for the user, focusing on the following aspects: Are the job requirements and responsibilities clearly identified, and is there any unnecessary jargon or information that can be removed? Does the cover letter include relevant keywords that align with the job description, and are there any important skills or experiences missing? Are the user’s achievements and contributions clearly highlighted, and are there any quantifiable results or metrics that can be added to demonstrate impact? Does the cover letter effectively showcase the user’s qualifications and make a strong impression on potential employers?",
+    });
+  } else {
+    document.getElementById("resultJobPost").textContent =
+      "AI assistant is not available.";
+    return;
+  }
+
+  try {
+    // Send the resume to the AI and stream the response
+    const promptText = `The job post used to create a cover letter:\n${jobPostInput}`;
+    const stream = jobPostSession.promptStreaming(promptText);
+
+    let finalResult = ""; // Accumulate the result in a variable
+
+    for await (const chunk of stream) {
+      finalResult = chunk; // Append each chunk to the result
+      // Call this function where you handle the streaming of the resume text
+      updateResultDisplayWithScroll(finalResult, "resultJobPost");
+    }
+
+    // Save the final result (Job Post) to local storage
+    saveResponse(finalResult, "savedJobPostResponse");
+
+    // Destroy the session after use to free up resources
+    jobPostSession.destroy();
+    console.log("Session destroyed after completion");
+    jobPostSession = null; // Reset session reference
+  } catch (error) {
+    document.getElementById(
+      "resultJobPost"
+    ).textContent = `Error: ${error.message}`;
   }
 }
