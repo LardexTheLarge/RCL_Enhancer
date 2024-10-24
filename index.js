@@ -17,37 +17,42 @@ document
 // Load saved resume and cover letter inputs when the popup is opened
 document.addEventListener("DOMContentLoaded", async () => {
   // Get last stored resume
-  const savedResume = await getStoredInput("savedResumeInput");
+  const savedResume = await getStoredResume();
   // Get last saved resume response
   const savedResumeResponse = await getStoredResponse("savedResumeResponse");
   // Get last saved cover letter response
   const savedCoverLetterResponse = await getStoredResponse(
     "savedCoverLetterResponse"
   );
-  // Get last saved job post
-  const savedJobPost = await getStoredInput("savedJobPostInput");
+  // Get last saved job post input
+  const savedJobPost = await saveJobPost();
   // Get last saved job post response
   const savedJobPostResponse = await getStoredResponse("savedJobPostResponse");
 
+  // Show saved resume input
   if (savedResume) {
-    document.getElementById("resumeInput").value = savedResume;
+    document.getElementById("resumeInput").value = savedResume; // Use .value for input fields
   }
+
   // Show saved resume response
   if (savedResumeResponse) {
     document.getElementById("resultResume").textContent = savedResumeResponse;
   }
+
   // Show saved cover letter response
   if (savedCoverLetterResponse) {
     document.getElementById("resultCoverLetter").textContent =
       savedCoverLetterResponse;
   }
+
   // Show saved job post response
   if (savedJobPostResponse) {
     document.getElementById("resultJobPost").textContent = savedJobPostResponse;
   }
-  // Show saved job post Input
+
+  // Show saved job post input
   if (savedJobPost) {
-    document.getElementById("jobPostInput").textContent = savedJobPost;
+    document.getElementById("jobPostInput").value = savedJobPost; // Use .value if it's an input or textarea
   }
 });
 

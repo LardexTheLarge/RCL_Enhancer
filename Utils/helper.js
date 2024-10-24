@@ -31,14 +31,14 @@ function getStoredResponse(storageKey = "savedResponse") {
   });
 }
 
-// Save the resume to Chrome's local storage
+// Save the resume input to local storage
 function saveResume(resumeText) {
-  console.log("Attempting to save resume"); // Log the resume text you're saving
-  chrome.storage.local.set({ savedResume: resumeText }, () => {
+  chrome.storage.local.set({ savedResumeInput: resumeText }, () => {
+    // Use savedResumeInput here to match the key
     if (chrome.runtime.lastError) {
       console.error("Error saving resume:", chrome.runtime.lastError);
     } else {
-      console.log("Resume saved successfully");
+      console.log("Resume saved successfully:", resumeText);
     }
   });
 }
@@ -51,8 +51,8 @@ function getStoredResume() {
         console.error("Error retrieving resume:", chrome.runtime.lastError);
         resolve(null);
       } else {
-        console.log("Retrieved resume from storage"); // Log the retrieved value
-        resolve(result.savedResume || ""); // Use empty string if undefined
+        console.log("Retrieved resume from storage:", result.savedResumeInput); // Log the retrieved value
+        resolve(result.savedResumeInput || ""); // Use empty string if undefined
       }
     });
   });
@@ -67,23 +67,5 @@ function saveJobPost(jobPostText) {
     } else {
       console.log("Job post saved successfully");
     }
-  });
-}
-
-// Retrieve the saved resume from local storage
-function getStoredInput(storageKey = "savedInput") {
-  return new Promise((resolve) => {
-    chrome.storage.local.get([storageKey], (result) => {
-      if (chrome.runtime.lastError) {
-        console.error(
-          `Error retrieving ${storageKey}:`,
-          chrome.runtime.lastError
-        );
-        resolve(null);
-      } else {
-        console.log(`Retrieved ${storageKey} from storage`); // Log the retrieved value
-        resolve(result[storageKey] || ""); // Use empty string if undefined
-      }
-    });
   });
 }
