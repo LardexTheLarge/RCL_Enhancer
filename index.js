@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     "savedCoverLetterResponse"
   );
   // Get last saved job post input
-  const savedJobPost = await saveJobPost();
+  const savedJobPost = await getStoredJobPost();
   // Get last saved job post response
   const savedJobPostResponse = await getStoredResponse("savedJobPostResponse");
 
@@ -45,14 +45,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       savedCoverLetterResponse;
   }
 
-  // Show saved job post response
-  if (savedJobPostResponse) {
-    document.getElementById("resultJobPost").textContent = savedJobPostResponse;
-  }
-
   // Show saved job post input
   if (savedJobPost) {
     document.getElementById("jobPostInput").value = savedJobPost; // Use .value if it's an input or textarea
+  }
+
+  // Show saved job post response
+  if (savedJobPostResponse) {
+    document.getElementById("resultJobPost").textContent = savedJobPostResponse;
   }
 });
 
@@ -200,42 +200,47 @@ async function runAIJobPost() {
     console.log("Previous session destroyed");
   }
 
-  // Create a new session
+  // Create a new session and check if the AI is available
   const { available } = await window.ai.assistant.capabilities();
   if (available !== "no") {
-    jobPostSession = await ai.assistant.create({
-      systemPrompt:
-        "Please review the provided job post and create a tailored cover letter for the user, focusing on the following aspects: Are the job requirements and responsibilities clearly identified, and is there any unnecessary jargon or information that can be removed? Does the cover letter include relevant keywords that align with the job description, and are there any important skills or experiences missing? Are the user’s achievements and contributions clearly highlighted, and are there any quantifiable results or metrics that can be added to demonstrate impact? Does the cover letter effectively showcase the user’s qualifications and make a strong impression on potential employers?",
-    });
+    try {
+      // Create a new session
+      jobPostSession = await ai.assistant.create({
+        systemPrompt:
+          "Please review the provided job post and create a tailored cover letter for the user, focusing on the following aspects: Are the job requirements and responsibilities clearly identified, and is there any unnecessary jargon or information that can be removed? Does the cover letter include relevant keywords that align with the job description, and are there any important skills or experiences missing? Are the user’s achievements and contributions clearly highlighted, and are there any quantifiable results or metrics that can be added to demonstrate impact? Does the cover letter effectively showcase the user’s qualifications and make a strong impression on potential employers?",
+      });
+
+      console.log("Session created successfully");
+
+      // Send the job post to the AI and stream the response
+      const promptText = `The job post used to create a cover letter:\n${jobPostInput}`;
+      const stream = jobPostSession.promptStreaming(promptText);
+
+      let finalResult = ""; // Accumulate the result in a variable
+
+      for await (const chunk of stream) {
+        finalResult = chunk; // Append each chunk to the result
+        // Call this function where you handle the streaming of the cover letter text
+        updateResultDisplayWithScroll(finalResult, "resultJobPost");
+      }
+
+      // Save the final result (Job Post) to local storage
+      saveResponse(finalResult, "savedJobPostResponse");
+
+      // Destroy the session after use to free up resources
+      jobPostSession.destroy();
+      console.log("Session destroyed after completion");
+      jobPostSession = null; // Reset session reference
+    } catch (error) {
+      console.error("Error during AI job post processing:", error);
+      document.getElementById(
+        "resultJobPost"
+      ).textContent = `Error: ${error.message}`;
+    }
   } else {
+    console.error("AI assistant is not available.");
     document.getElementById("resultJobPost").textContent =
       "AI assistant is not available.";
     return;
-  }
-
-  try {
-    // Send the resume to the AI and stream the response
-    const promptText = `The job post used to create a cover letter:\n${jobPostInput}`;
-    const stream = jobPostSession.promptStreaming(promptText);
-
-    let finalResult = ""; // Accumulate the result in a variable
-
-    for await (const chunk of stream) {
-      finalResult = chunk; // Append each chunk to the result
-      // Call this function where you handle the streaming of the resume text
-      updateResultDisplayWithScroll(finalResult, "resultJobPost");
-    }
-
-    // Save the final result (Job Post) to local storage
-    saveResponse(finalResult, "savedJobPostResponse");
-
-    // Destroy the session after use to free up resources
-    jobPostSession.destroy();
-    console.log("Session destroyed after completion");
-    jobPostSession = null; // Reset session reference
-  } catch (error) {
-    document.getElementById(
-      "resultJobPost"
-    ).textContent = `Error: ${error.message}`;
   }
 }

@@ -38,7 +38,7 @@ function saveResume(resumeText) {
     if (chrome.runtime.lastError) {
       console.error("Error saving resume:", chrome.runtime.lastError);
     } else {
-      console.log("Resume saved successfully:", resumeText);
+      console.log("Resume saved successfully");
     }
   });
 }
@@ -51,7 +51,7 @@ function getStoredResume() {
         console.error("Error retrieving resume:", chrome.runtime.lastError);
         resolve(null);
       } else {
-        console.log("Retrieved resume from storage:", result.savedResumeInput); // Log the retrieved value
+        console.log("Retrieved resume from storage"); // Log the retrieved value
         resolve(result.savedResumeInput || ""); // Use empty string if undefined
       }
     });
@@ -67,5 +67,20 @@ function saveJobPost(jobPostText) {
     } else {
       console.log("Job post saved successfully");
     }
+  });
+}
+
+// Retrieve the saved job post from local storage
+function getStoredJobPost() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get("savedJobPost", (result) => {
+      if (chrome.runtime.lastError) {
+        console.error("Error retrieving job post:", chrome.runtime.lastError);
+        resolve(null);
+      } else {
+        console.log("Retrieved job post from storage"); // Log the retrieved value
+        resolve(result.savedJobPost || ""); // Use empty string if undefined
+      }
+    });
   });
 }
