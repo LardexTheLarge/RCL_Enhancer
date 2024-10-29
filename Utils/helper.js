@@ -84,3 +84,31 @@ function getStoredJobPost() {
     });
   });
 }
+
+// Request and display job posting details in the popup
+function requestJobPostings() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { action: "getJobPostings" },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Error retrieving job postings:",
+            chrome.runtime.lastError
+          );
+        } else if (response && response.jobPostings) {
+          const jobPost = response.jobPostings;
+
+          // Display or use cleaned job post description
+          document.getElementById("jobPostInput").value = jobPost.description;
+
+          // Optionally, trigger the AI function to create a cover letter based on this job post
+          runAIJobPost(jobPost.description);
+        } else {
+          console.log("No job postings found on this page.");
+        }
+      }
+    );
+  });
+}
