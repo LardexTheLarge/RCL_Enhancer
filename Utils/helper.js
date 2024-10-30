@@ -85,29 +85,47 @@ function getStoredJobPost() {
   });
 }
 
-// Request and display job posting details in the popup
+// Function to inject content.js and request job postings
 function requestJobPostings() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { action: "getJobPostings" },
-      (response) => {
+    const tabId = tabs[0].id;
+
+    // Inject content.js into the active tab if necessary
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tabId },
+        files: ["Utils/content.js"],
+      },
+      () => {
         if (chrome.runtime.lastError) {
-          console.error(
-            "Error retrieving job postings:",
-            chrome.runtime.lastError
-          );
-        } else if (response && response.jobPostings) {
-          const jobPost = response.jobPostings;
-
-          // Display or use cleaned job post description
-          document.getElementById("jobPostInput").value = jobPost.description;
-
-          // Optionally, trigger the AI function to create a cover letter based on this job post
-          runAIJobPost(jobPost.description);
-        } else {
-          console.log("No job postings found on this page.");
+          console.error("Script injection failed:", chrome.runtime.lastError);
+          return;
         }
+
+        // Send message to content.js to extract job postings
+        chrome.tabs.sendMessage(
+          tabId,
+          { action: "getJobPostings" },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              console.error(
+                "Error retrieving job postings:",
+                chrome.runtime.lastError
+              );
+            } else if (response && response.jobPostings) {
+              const jobPost = response.jobPostings;
+
+              // Display the job post description in the textbox
+              document.getElementById("jobPostInput").value =
+                jobPost.description || "No description available";
+
+              // Call runAIJobPost with the job post description
+              runAIJobPost(jobPost.description);
+            } else {
+              console.log("No job postings found on this page.");
+            }
+          }
+        );
       }
     );
   });

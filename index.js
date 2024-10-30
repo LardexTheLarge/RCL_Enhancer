@@ -2,7 +2,7 @@ let resumeSession = null; // To keep track of the session
 let coverLetterSession = null; // Keep track of the AI session for cover letters
 let jobPostSession = null; // Keep track of the AI session for Job Posts
 
-// Call the requestJobPostings function when the popup opens
+// Call the function to request job postings when the popup opens
 document.addEventListener("DOMContentLoaded", requestJobPostings);
 
 document
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     "savedCoverLetterResponse"
   );
   // Get last saved job post input
-  const savedJobPost = await getStoredJobPost();
+  // const savedJobPost = await getStoredJobPost();
   // Get last saved job post response
   const savedJobPostResponse = await getStoredResponse("savedJobPostResponse");
 
@@ -49,9 +49,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Show saved job post input
-  if (savedJobPost) {
-    document.getElementById("jobPostInput").value = savedJobPost; // Use .value if it's an input or textarea
-  }
+  // if (savedJobPost) {
+  //   // Use .value if it's an input or textarea
+  //   document.getElementById("jobPostInput").value = savedJobPost;
+  // }
 
   // Show saved job post response
   if (savedJobPostResponse) {
@@ -248,18 +249,14 @@ async function runAICoverLetter() {
 //   }
 // }
 
-async function runAIJobPost(jobPost) {
-  // Convert job post JSON to a string
-  const jobPostText = JSON.stringify(jobPost, null, 2);
-
+// Function to run an AI to create a cover letter from a job post
+async function runAIJobPost(jobPostText) {
+  // Ensure jobPostText contains a value
   if (!jobPostText) {
     document.getElementById("resultJobPost").textContent =
-      "Please enter a job post to create a cover letter.";
+      "No job post text provided.";
     return;
   }
-
-  // Save the job post input to local storage
-  saveJobPost(jobPostText);
 
   // Clear the previous result
   document.getElementById("resultJobPost").textContent = "Creating...";
@@ -270,37 +267,38 @@ async function runAIJobPost(jobPost) {
     console.log("Previous session destroyed");
   }
 
-  // Create a new session
+  // Check if AI assistant capabilities are available
   const { available } = await window.ai.assistant.capabilities();
   if (available !== "no") {
-    jobPostSession = await ai.assistant.create({
-      systemPrompt:
-        "Please review the provided job post and create a tailored cover letter for the user, focusing on the following aspects: Are the job requirements and responsibilities clearly identified, and is there any unnecessary jargon or information that can be removed? Does the cover letter include relevant keywords that align with the job description, and are there any important skills or experiences missing? Are the user’s achievements and contributions clearly highlighted, and are there any quantifiable results or metrics that can be added to demonstrate impact? Does the cover letter effectively showcase the user’s qualifications and make a strong impression on potential employers?",
-    });
+    try {
+      // Create a new session
+      jobPostSession = await ai.assistant.create({
+        systemPrompt:
+          "Please review the provided job post and create a tailored cover letter for the user, focusing on the following aspects: Are the job requirements and responsibilities clearly identified, and is there any unnecessary jargon or information that can be removed? Does the cover letter include relevant keywords that align with the job description, and are there any important skills or experiences missing? Are the user’s achievements and contributions clearly highlighted, and are there any quantifiable results or metrics that can be added to demonstrate impact? Does the cover letter effectively showcase the user’s qualifications and make a strong impression on potential employers?",
+      });
+
+      const promptText = `The job post used to create a cover letter:\n${jobPostText}`;
+      const stream = jobPostSession.promptStreaming(promptText);
+
+      let finalResult = "";
+
+      for await (const chunk of stream) {
+        finalResult = chunk;
+        updateResultDisplayWithScroll(finalResult, "resultJobPost");
+      }
+
+      saveResponse(finalResult, "savedJobPostResponse");
+
+      jobPostSession.destroy();
+      console.log("Session destroyed after completion");
+      jobPostSession = null;
+    } catch (error) {
+      document.getElementById(
+        "resultJobPost"
+      ).textContent = `Error: ${error.message}`;
+    }
   } else {
     document.getElementById("resultJobPost").textContent =
       "AI assistant is not available.";
-    return;
-  }
-
-  try {
-    const promptText = `The job post used to create a cover letter:\n${jobPostText}`;
-    const stream = jobPostSession.promptStreaming(promptText);
-
-    let finalResult = "";
-
-    for await (const chunk of stream) {
-      finalResult = chunk;
-      updateResultDisplayWithScroll(finalResult, "resultJobPost");
-    }
-
-    saveResponse(finalResult, "savedJobPostResponse");
-    jobPostSession.destroy();
-    console.log("Session destroyed after completion");
-    jobPostSession = null;
-  } catch (error) {
-    document.getElementById(
-      "resultJobPost"
-    ).textContent = `Error: ${error.message}`;
   }
 }
