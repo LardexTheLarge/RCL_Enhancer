@@ -58,32 +58,32 @@ function getStoredResume() {
   });
 }
 
-// Save the job post to Chrome's local storage
-function saveJobPost(jobPostText) {
-  console.log("Attempting to save job post"); // Log the job post text you're saving
-  chrome.storage.local.set({ savedJobPost: jobPostText }, () => {
-    if (chrome.runtime.lastError) {
-      console.error("Error saving job post:", chrome.runtime.lastError);
-    } else {
-      console.log("Job post saved successfully");
-    }
-  });
-}
+// // Save the job post to Chrome's local storage
+// function saveJobPost(jobPostText) {
+//   console.log("Attempting to save job post"); // Log the job post text you're saving
+//   chrome.storage.local.set({ savedJobPost: jobPostText }, () => {
+//     if (chrome.runtime.lastError) {
+//       console.error("Error saving job post:", chrome.runtime.lastError);
+//     } else {
+//       console.log("Job post saved successfully");
+//     }
+//   });
+// }
 
-// Retrieve the saved job post from local storage
-function getStoredJobPost() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get("savedJobPost", (result) => {
-      if (chrome.runtime.lastError) {
-        console.error("Error retrieving job post:", chrome.runtime.lastError);
-        resolve(null);
-      } else {
-        console.log("Retrieved job post from storage"); // Log the retrieved value
-        resolve(result.savedJobPost || ""); // Use empty string if undefined
-      }
-    });
-  });
-}
+// // Retrieve the saved job post from local storage
+// function getStoredJobPost() {
+//   return new Promise((resolve) => {
+//     chrome.storage.local.get("savedJobPost", (result) => {
+//       if (chrome.runtime.lastError) {
+//         console.error("Error retrieving job post:", chrome.runtime.lastError);
+//         resolve(null);
+//       } else {
+//         console.log("Retrieved job post from storage"); // Log the retrieved value
+//         resolve(result.savedJobPost || ""); // Use empty string if undefined
+//       }
+//     });
+//   });
+// }
 
 // Function to inject content.js and request job postings
 function requestJobPostings() {
