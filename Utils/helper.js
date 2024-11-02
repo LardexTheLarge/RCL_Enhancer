@@ -85,8 +85,9 @@ function getStoredResume() {
 //   });
 // }
 
-// Function to inject content.js and request job postings
-function requestJobPostings() {
+// Function to load job post data into the textarea without running AI automatically
+function requestJobPostings(callback = () => {}) {
+  // Default to an empty function
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tabId = tabs[0].id;
 
@@ -115,12 +116,20 @@ function requestJobPostings() {
             } else if (response && response.jobPostings) {
               const jobPost = response.jobPostings;
 
-              // Display the job post description in the textbox
+              // Populate job post into the textarea
               document.getElementById("jobPostInput").value =
                 jobPost.description || "No description available";
 
-              // Call runAIJobPost with the job post description
-              runAIJobPost(jobPost.description);
+              // Log the loaded job post for debugging
+              console.log(
+                "Job post loaded into textarea:",
+                jobPost.description
+              );
+
+              // Call the callback to enable the button, if it’s a function
+              if (typeof callback === "function") {
+                callback();
+              }
             } else {
               console.log("No job postings found on this page.");
             }
