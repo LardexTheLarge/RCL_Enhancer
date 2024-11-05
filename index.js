@@ -14,29 +14,19 @@ document
   .addEventListener("click", runAICoverLetter);
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Disable the button initially
   const generateButton = document.getElementById("runAIJobPostButton");
+  const temperatureSlider = document.getElementById("temperature");
+  const topKSlider = document.getElementById("topK");
+  const temperatureValueDisplay = document.getElementById("temperatureValue");
+  const topKValueDisplay = document.getElementById("topKValue");
+
+  // Disable the button initially
   generateButton.disabled = true;
 
   // Load job post data into the textarea and enable the button when ready
   requestJobPostings(() => {
     generateButton.disabled = false; // Enable the button after loading job post
   });
-
-  // Button click event to run AI with the current job post
-  generateButton.addEventListener("click", () => {
-    const jobPostText = document.getElementById("jobPostInput").value;
-
-    // Run AI only when the button is clicked
-    runAIJobPost(jobPostText);
-  });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const temperatureSlider = document.getElementById("temperature");
-  const topKSlider = document.getElementById("topK");
-  const temperatureValueDisplay = document.getElementById("temperatureValue");
-  const topKValueDisplay = document.getElementById("topKValue");
 
   // Update displayed value for Temperature as the slider is moved
   temperatureSlider.addEventListener("input", () => {
@@ -48,20 +38,18 @@ document.addEventListener("DOMContentLoaded", () => {
     topKValueDisplay.textContent = topKSlider.value;
   });
 
-  // Set up button click to run AI with the current slider values
-  document
-    .getElementById("runAIJobPostButton")
-    .addEventListener("click", () => {
-      const jobPostText = document.getElementById("jobPostInput").value;
-      const temperature = parseFloat(temperatureSlider.value);
-      const topK = parseInt(topKSlider.value, 10);
+  // Single button click event handler to run AI with the current job post and slider values
+  generateButton.addEventListener("click", () => {
+    const jobPostText = document.getElementById("jobPostInput").value;
+    const temperature = parseFloat(temperatureSlider.value);
+    const topK = parseInt(topKSlider.value, 10);
 
-      // Log the job post text and slider values for debugging
-      console.log("Button clicked. Job post text:", jobPostText);
-      console.log("Temperature:", temperature, "TopK:", topK);
+    console.log("Button clicked. Job post text:", jobPostText);
+    console.log("Temperature:", temperature, "TopK:", topK);
 
-      runAIJobPost(jobPostText, temperature, topK);
-    });
+    // Run AI only when the button is clicked
+    runAIJobPost(jobPostText, temperature, topK);
+  });
 });
 
 // Load saved resume and cover letter inputs when the popup is opened
@@ -222,56 +210,155 @@ async function runAICoverLetter() {
 }
 
 // Function to run an AI to create a cover letter from a job post
-async function runAIJobPost(jobPostText, temperature, topK) {
-  // Ensure jobPostText contains a value
+// async function runAIJobPost(jobPostText, temperature, topK) {
+//   // Ensure jobPostText contains a value
+//   if (!jobPostText) {
+//     document.getElementById("resultJobPost").textContent =
+//       "No job post text provided.";
+//     return;
+//   }
+
+//   // Clear the previous result
+//   document.getElementById("resultJobPost").textContent = "Creating...";
+//   let finalResult = ""; // Accumulate the result in a variable
+//   // Destroy the previous session if it exists
+//   if (jobPostSession) {
+//     await jobPostSession.destroy();
+//     jobPostSession = null;
+//     console.log("Previous session destroyed");
+//   }
+
+//   // Check if AI assistant capabilities are available
+//   const { available } = await window.ai.assistant.capabilities();
+//   if (available !== "no") {
+//     try {
+//       // Create a new session
+//       jobPostSession = await ai.assistant.create({
+//         systemPrompt:
+//           "Please review the provided job post and create a tailored cover letter for the user, focusing on the following aspects: Are the job requirements and responsibilities clearly identified, and is there any unnecessary jargon or information that can be removed? Does the cover letter include relevant keywords that align with the job description, and are there any important skills or experiences missing? Are the user’s achievements and contributions clearly highlighted, and are there any quantifiable results or metrics that can be added to demonstrate impact? Does the cover letter effectively showcase the user’s qualifications and make a strong impression on potential employers?",
+//         temperature: temperature,
+//         topK: topK,
+//       });
+
+//       const promptText = `The job post used to create a cover letter:\n${jobPostText}`;
+//       const stream = jobPostSession.promptStreaming(promptText);
+
+//       for await (const chunk of stream) {
+//         finalResult = chunk;
+//         updateResultDisplayWithScroll(finalResult, "resultJobPost");
+//       }
+//       console.log("streaming complete");
+//       saveResponse(finalResult, "savedJobPostResponse");
+
+//       await jobPostSession.destroy();
+//       console.log("Session destroyed after completion");
+//       jobPostSession = null;
+//     } catch (error) {
+//       document.getElementById(
+//         "resultJobPost"
+//       ).textContent = `Error: ${error.message}`;
+//     }
+//   } else {
+//     document.getElementById("resultJobPost").textContent =
+//       "AI assistant is not available.";
+//   }
+// }
+
+// Function to run an AI to create a cover letter from a job post
+async function runAIJobPost(jobPostText, temperature, topK, maxRetries = 3) {
   if (!jobPostText) {
     document.getElementById("resultJobPost").textContent =
       "No job post text provided.";
     return;
   }
 
-  // Clear the previous result
+  const generateButton = document.getElementById("runAIJobPostButton");
+  generateButton.disabled = true; // Disable button during processing
+
   document.getElementById("resultJobPost").textContent = "Creating...";
-  let finalResult = ""; // Accumulate the result in a variable
-  // Destroy the previous session if it exists
-  if (jobPostSession) {
-    await jobPostSession.destroy();
-    jobPostSession = null;
-    console.log("Previous session destroyed");
-  }
+  let finalResult = "";
+  let retries = 0;
 
-  // Check if AI assistant capabilities are available
-  const { available } = await window.ai.assistant.capabilities();
-  if (available !== "no") {
-    try {
-      // Create a new session
-      jobPostSession = await ai.assistant.create({
-        systemPrompt:
-          "Please review the provided job post and create a tailored cover letter for the user, focusing on the following aspects: Are the job requirements and responsibilities clearly identified, and is there any unnecessary jargon or information that can be removed? Does the cover letter include relevant keywords that align with the job description, and are there any important skills or experiences missing? Are the user’s achievements and contributions clearly highlighted, and are there any quantifiable results or metrics that can be added to demonstrate impact? Does the cover letter effectively showcase the user’s qualifications and make a strong impression on potential employers?",
-        temperature: temperature,
-        topK: topK,
-      });
-
-      const promptText = `The job post used to create a cover letter:\n${jobPostText}`;
-      const stream = jobPostSession.promptStreaming(promptText);
-
-      for await (const chunk of stream) {
-        finalResult = chunk;
-        updateResultDisplayWithScroll(finalResult, "resultJobPost");
-      }
-      console.log("streaming complete");
-      saveResponse(finalResult, "savedJobPostResponse");
-
+  async function streamResponse() {
+    // Destroy any leftover session to avoid carryover state
+    if (jobPostSession) {
       await jobPostSession.destroy();
-      console.log("Session destroyed after completion");
       jobPostSession = null;
+      console.log("Previous session destroyed");
+    }
+
+    try {
+      const { available } = await window.ai.assistant.capabilities();
+      if (available !== "no") {
+        jobPostSession = await ai.assistant.create({
+          systemPrompt:
+            "Please review the provided job post and create a tailored cover letter for the user...",
+          temperature: temperature,
+          topK: topK,
+        });
+
+        const promptText = `The job post used to create a cover letter:\n${jobPostText}`;
+        const stream = jobPostSession.promptStreaming(promptText);
+        let hasChunks = false;
+
+        for await (const chunk of stream) {
+          finalResult = chunk; // Accumulate each chunk
+          updateResultDisplayWithScroll(finalResult, "resultJobPost");
+          hasChunks = true; // Set flag if at least one chunk is received
+        }
+
+        if (!hasChunks) {
+          throw new Error("Streaming incomplete - no chunks received.");
+        }
+
+        console.log("Streaming complete");
+        saveResponse(finalResult, "savedJobPostResponse");
+        return true; // Indicate successful completion
+      } else {
+        document.getElementById("resultJobPost").textContent =
+          "AI assistant is not available.";
+        return false;
+      }
     } catch (error) {
+      console.error("Error during AI job post processing:", error);
+
+      // Specific logging for UnknownError to track retries
+      if (error.message.includes("UnknownError")) {
+        console.warn("Encountered UnknownError. Retrying if retries remain.");
+      }
+
       document.getElementById(
         "resultJobPost"
       ).textContent = `Error: ${error.message}`;
+      return false;
+    } finally {
+      // Destroy session if it's still active
+      if (jobPostSession) {
+        await jobPostSession.destroy();
+        jobPostSession = null;
+        console.log("Session destroyed after attempt");
+      }
     }
-  } else {
-    document.getElementById("resultJobPost").textContent =
-      "AI assistant is not available.";
   }
+
+  // Retry loop with delay between attempts
+  while (retries < maxRetries) {
+    const completed = await streamResponse();
+    if (completed) break; // Exit loop if streaming completes successfully
+
+    retries += 1;
+    console.log(`Retrying... Attempt ${retries}`);
+    document.getElementById("resultJobPost").textContent += "\n[Retrying...]\n";
+
+    // Delay to avoid immediate retries in case of network or session issues
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+
+  if (retries === maxRetries) {
+    document.getElementById("resultJobPost").textContent +=
+      "\n[Response incomplete after retries]";
+  }
+
+  // Re-enable the button after the attempt completes
+  generateButton.disabled = false;
 }
