@@ -13,43 +13,9 @@ document
   .getElementById("runAICoverLetterButton")
   .addEventListener("click", runAICoverLetter);
 
-document.addEventListener("DOMContentLoaded", () => {
-  const generateButton = document.getElementById("runAIJobPostButton");
-  const temperatureSlider = document.getElementById("temperature");
-  const topKSlider = document.getElementById("topK");
-  const temperatureValueDisplay = document.getElementById("temperatureValue");
-  const topKValueDisplay = document.getElementById("topKValue");
-
-  // Disable the button initially
-  generateButton.disabled = true;
-
-  // Load job post data into the textarea and enable the button when ready
-  requestJobPostings(() => {
-    generateButton.disabled = false; // Enable the button after loading job post
-  });
-
-  // Update displayed value for Temperature as the slider is moved
-  temperatureSlider.addEventListener("input", () => {
-    temperatureValueDisplay.textContent = temperatureSlider.value;
-  });
-
-  // Update displayed value for TopK as the slider is moved
-  topKSlider.addEventListener("input", () => {
-    topKValueDisplay.textContent = topKSlider.value;
-  });
-
-  // Single button click event handler to run AI with the current job post and slider values
-  generateButton.addEventListener("click", () => {
-    const jobPostText = document.getElementById("jobPostInput").value;
-    const temperature = parseFloat(temperatureSlider.value);
-    const topK = parseInt(topKSlider.value, 10);
-
-    console.log("Temperature:", temperature, "TopK:", topK);
-
-    // Run AI only when the button is clicked
-    runAIJobPost(jobPostText, temperature, topK);
-  });
-});
+document
+  .getElementById("runAIJobPostButton")
+  .addEventListener("click", runAIJobPost);
 
 // Load saved resume and cover letter inputs when the popup is opened
 document.addEventListener("DOMContentLoaded", async () => {
@@ -209,7 +175,8 @@ async function runAICoverLetter() {
 }
 
 // Function to run an AI to create a cover letter from a job post
-async function runAIJobPost(jobPostText, temperature, topK) {
+async function runAIJobPost() {
+  const jobPostText = document.getElementById("jobPostInput").value;
   // Ensure jobPostText contains a value
   if (!jobPostText) {
     document.getElementById("resultJobPost").textContent =
@@ -228,8 +195,28 @@ async function runAIJobPost(jobPostText, temperature, topK) {
   }
 
   // Check if AI assistant capabilities are available
-  const { available } = await window.ai.assistant.capabilities();
+  const { available, defaultTemperature, defaultTopK } =
+    await window.ai.assistant.capabilities();
+
   if (available !== "no") {
+    const temperatureSlider = document.getElementById("temperature");
+    const topKSlider = document.getElementById("topK");
+    const temperatureValueDisplay = document.getElementById("temperatureValue");
+    const topKValueDisplay = document.getElementById("topKValue");
+
+    // Use the input values if provided, otherwise use the defaults
+    const temperature = temperatureSlider
+      ? parseFloat(temperatureSlider.value)
+      : defaultTemperature;
+    const topK = topKSlider ? parseInt(topKSlider.value) : defaultTopK;
+
+    // Update the display values
+    if (temperatureValueDisplay) {
+      temperatureValueDisplay.textContent = temperature;
+    }
+    if (topKValueDisplay) {
+      topKValueDisplay.textContent = topK;
+    }
     try {
       // Create a new session
       jobPostSession = await ai.assistant.create({
@@ -247,6 +234,8 @@ async function runAIJobPost(jobPostText, temperature, topK) {
         updateResultDisplayWithScroll(finalResult, "resultJobPost");
       }
       console.log("streaming complete");
+      console.log(temperature.toFixed(2));
+      console.log(topK);
       saveResponse(finalResult, "savedJobPostResponse");
 
       await jobPostSession.destroy();
