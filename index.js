@@ -5,6 +5,22 @@ let jobPostSession = null; // Keep track of the AI session for Job Posts
 // Call the function to request job postings when the popup opens
 document.addEventListener("DOMContentLoaded", requestJobPostings);
 
+document.addEventListener("DOMContentLoaded", () => {
+  const temperatureSlider = document.getElementById("temperatureSlider");
+  const topKSlider = document.getElementById("topKSlider");
+  const temperatureValueDisplay = document.getElementById("temperatureValue");
+  const topKValueDisplay = document.getElementById("topKValue");
+
+  // Update display values in real time
+  temperatureSlider.addEventListener("input", () => {
+    temperatureValueDisplay.textContent = temperatureSlider.value;
+  });
+
+  topKSlider.addEventListener("input", () => {
+    topKValueDisplay.textContent = topKSlider.value;
+  });
+});
+
 document
   .getElementById("runAIResumeButton")
   .addEventListener("click", runAIResume);
@@ -75,11 +91,20 @@ async function runAIResume() {
   }
 
   // Create a new session
-  const { available } = await window.ai.assistant.capabilities();
+  const { available, defaultTemperature, defaultTopK } =
+    await window.ai.assistant.capabilities();
   if (available !== "no") {
+    // Use the input values if provided, otherwise use the defaults
+    const temperature = temperatureSlider
+      ? parseFloat(temperatureSlider.value)
+      : defaultTemperature;
+    const topK = topKSlider ? parseInt(topKSlider.value) : defaultTopK;
+
     resumeSession = await ai.assistant.create({
       systemPrompt:
         "Please review the attached resume and provide detailed feedback on how it can be improved. Focus on the following aspects:\n Content and Clarity: Are the job descriptions clear and concise? Is there any unnecessary jargon or information that can be removed?\n Relevance and Keywords: Does the resume include relevant keywords that align with the job description? Are there any important skills or experiences missing?\n Achievements and Impact: Are the achievements and contributions clearly highlighted? Are there any quantifiable results or metrics that can be added to demonstrate impact?\n Overall Impression: Does the resume effectively showcase the candidate’s qualifications and make a strong impression on potential employers?",
+      temperature: temperature,
+      topK: topK,
     });
   } else {
     document.getElementById("resultResume").textContent =
@@ -125,7 +150,8 @@ async function runAICoverLetter() {
     return;
   }
 
-  const { available } = await window.ai.assistant.capabilities();
+  const { available, defaultTemperature, defaultTopK } =
+    await window.ai.assistant.capabilities();
   if (available !== "no") {
     // Destroy the previous session if it exists
     if (coverLetterSession) {
@@ -133,10 +159,18 @@ async function runAICoverLetter() {
       console.log("Previous cover letter session destroyed");
     }
 
+    // Use the input values if provided, otherwise use the defaults
+    const temperature = temperatureSlider
+      ? parseFloat(temperatureSlider.value)
+      : defaultTemperature;
+    const topK = topKSlider ? parseInt(topKSlider.value) : defaultTopK;
+
     // Create a new session for cover letter enhancement
     coverLetterSession = await ai.assistant.create({
       systemPrompt:
         "Review the attached cover letter and rewrite it to sound more professional while maintaining the original keywords. Focus on the following aspects:\n Tone and Language: Ensure the language is formal and professional. Avoid casual phrases and improve the overall tone.\n Clarity and Conciseness: Make the cover letter clear and concise. Remove any redundant or unnecessary information.\n Structure and Flow: Improve the structure and flow of the cover letter. Ensure each paragraph transitions smoothly to the next.\n Keywords: Retain the original keywords used in the cover letter to ensure it aligns with the job description.\n Personalization: Ensure the cover letter still reflects the candidate’s unique qualifications and enthusiasm for the role.",
+      temperature: temperature,
+      topK: topK,
     });
 
     const promptText = `Review and enhance the following cover letter:\n${coverLetterInput}`;
@@ -199,24 +233,12 @@ async function runAIJobPost() {
     await window.ai.assistant.capabilities();
 
   if (available !== "no") {
-    const temperatureSlider = document.getElementById("temperature");
-    const topKSlider = document.getElementById("topK");
-    const temperatureValueDisplay = document.getElementById("temperatureValue");
-    const topKValueDisplay = document.getElementById("topKValue");
-
     // Use the input values if provided, otherwise use the defaults
     const temperature = temperatureSlider
       ? parseFloat(temperatureSlider.value)
       : defaultTemperature;
     const topK = topKSlider ? parseInt(topKSlider.value) : defaultTopK;
 
-    // Update the display values
-    if (temperatureValueDisplay) {
-      temperatureValueDisplay.textContent = temperature;
-    }
-    if (topKValueDisplay) {
-      topKValueDisplay.textContent = topK;
-    }
     try {
       // Create a new session
       jobPostSession = await ai.assistant.create({
@@ -233,9 +255,7 @@ async function runAIJobPost() {
         finalResult = chunk;
         updateResultDisplayWithScroll(finalResult, "resultJobPost");
       }
-      console.log("streaming complete");
-      console.log(temperature.toFixed(2));
-      console.log(topK);
+
       saveResponse(finalResult, "savedJobPostResponse");
 
       await jobPostSession.destroy();
