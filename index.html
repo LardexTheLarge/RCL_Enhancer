@@ -102,6 +102,42 @@
           background-color: #135ba0;
           border-color: #135ba0;
         }
+
+        .dropdown-menu {
+          background-color: #333; /* Dark background for dropdown */
+          color: #e0e0e0; /* Light text color */
+          border: 1px solid #555; /* Border color for better contrast */
+        }
+
+        /* Style the labels inside the dropdown */
+        .dropdown-menu .form-label {
+          color: #bbb; /* Light gray for labels */
+        }
+
+        /* Style the range inputs in dark mode */
+        .dropdown-menu .form-range {
+          background-color: #333; /* Darker background for slider */
+          color: #e0e0e0; /* Light text color for values */
+        }
+
+        /* Style the text displaying temperature and topK values */
+        #temperatureValue,
+        #topKValue {
+          color: #e0e0e0;
+        }
+
+        /* Hover effect for the dropdown button */
+        #settingsDropdown.btn-secondary {
+          background-color: #444; /* Dark background for dropdown button */
+          border-color: #666;
+          color: #e0e0e0;
+        }
+
+        #settingsDropdown.btn-secondary:hover,
+        #settingsDropdown.btn-secondary:focus {
+          background-color: #555; /* Slightly lighter on hover */
+          border-color: #777;
+        }
       }
     </style>
   </head>
